@@ -1,0 +1,89 @@
+---
+title: "CMS Open Payments"
+author: "Benjamin Chan (chanb@ohsu.edu)"
+date: "Tuesday, September 30, 2014"
+output:
+  html_document:
+    keep_md: yes
+---
+
+`r Sys.Date()`
+
+`r R.Version()$version.string`
+
+**Play around with the CMS [Open Payments](http://www.cms.gov/OpenPayments) data.**
+
+Download the data dictionary.
+
+```{r}
+url <- "http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf"
+download.file(url, paste0(getwd(), "\\OpenPaymentsDataDictionary.pdf"), mode="wb")
+```
+
+Download the *Datasets containing all records with identifying information on covered recipients* file.
+
+```{r}
+url <- "http://download.cms.gov/openpayments/09302014_ALLDTL.ZIP"
+f <- paste0(tempfile(), ".zip")
+download.file(url, f, mode="wb")
+```
+
+Unzip the file.
+
+```{r}
+unzip(f, exdir=tempdir())
+filenames <- unzip(f, list=TRUE)
+filenames
+```
+
+Show the `README.txt` file.
+
+```{r}
+cat(readLines(paste0(tempdir(), "\\README.txt")), sep="\n")
+```
+
+Read the General Payments file into a data frame.
+See *Appendix A: General Payments Detail* in *OpenPaymentsDataDictionary.pdf*.
+
+```{r}
+f <- filenames$Name[grep("GNRL", filenames$Name)]
+f <- paste0(tempdir(), "\\", f)
+require(data.table)
+colNames <- names(fread(f, nrows=0))
+classes <- list(character=1:length(colNames))
+D <- fread(f,
+           colClasses=classes,
+           na.strings="",
+           stringsAsFactors=FALSE)
+```
+
+Recode dates and numeric columns.
+
+```{r}
+colNames[grep("Date", colNames)]
+D <- D[,
+       `:=` (Program_Year = as.integer(Program_Year),
+             Payment_Publication_Date = as.Date(Payment_Publication_Date, format="%m/%d/%Y"),
+             Date_of_Payment = as.Date(Date_of_Payment, format="%m/%d/%Y"),
+             Total_Amount_of_Payment_USDollars = as.numeric(Total_Amount_of_Payment_USDollars),
+             Number_of_Payments_Included_in_Total_Amount = as.integer(Number_of_Payments_Included_in_Total_Amount))]
+```
+
+Find the largest payment.
+
+```{r}
+maxPayment <- max(D[, Total_Amount_of_Payment_USDollars])
+D[Total_Amount_of_Payment_USDollars == maxPayment,
+  list(Total_Amount_of_Payment_USDollars,
+       Date_of_Payment,
+       Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name,
+       Physician_First_Name,
+       Physician_Last_Name,
+       Teaching_Hospital_Name,
+       Recipient_City,
+       Recipient_State,
+       Recipient_Postal_Code,
+       Name_of_Associated_Covered_Drug_or_Biological1,
+       Form_of_Payment_or_Transfer_of_Value,
+       Nature_of_Payment_or_Transfer_of_Value)]
+```
