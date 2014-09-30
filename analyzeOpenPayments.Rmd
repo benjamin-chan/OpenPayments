@@ -87,3 +87,39 @@ D[Total_Amount_of_Payment_USDollars == maxPayment,
        Form_of_Payment_or_Transfer_of_Value,
        Nature_of_Payment_or_Transfer_of_Value)]
 ```
+
+Find the 10 largest payments.
+
+```{r}
+topPayments <- sort(D[, Total_Amount_of_Payment_USDollars], decreasing=TRUE)[1:10]
+D[Total_Amount_of_Payment_USDollars %in% topPayments,
+  list(Total_Amount_of_Payment_USDollars,
+       Date_of_Payment,
+       Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name,
+       Physician_First_Name,
+       Physician_Last_Name,
+       Teaching_Hospital_Name,
+       Recipient_City,
+       Recipient_State,
+       Recipient_Postal_Code,
+       Name_of_Associated_Covered_Drug_or_Biological1,
+       Form_of_Payment_or_Transfer_of_Value,
+       Nature_of_Payment_or_Transfer_of_Value)][order(Total_Amount_of_Payment_USDollars, decreasing=TRUE)]
+```
+
+How many unique drugs or biologicals are represented?
+
+```{r}
+setkey(D, Name_of_Associated_Covered_Drug_or_Biological1)
+length(unique(D[, Name_of_Associated_Covered_Drug_or_Biological1]))
+```
+
+List the drugs or biologicals with more than $1M in total payments.
+
+```{r}
+drugs <- D[,
+           list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+                nRecords = .N),
+           Name_of_Associated_Covered_Drug_or_Biological1][order(sumPayments, decreasing=TRUE)]
+drugs[sumPayments > 1E6]
+```
