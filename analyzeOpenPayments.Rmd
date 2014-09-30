@@ -4,6 +4,7 @@ author: "Benjamin Chan (chanb@ohsu.edu)"
 output:
   html_document:
     keep_md: yes
+    toc: yes
 ---
 
 **Play around with the CMS [Open Payments](http://www.cms.gov/OpenPayments) data.**
@@ -41,6 +42,19 @@ Show the `README.txt` file.
 cat(readLines(paste0(tempdir(), "\\README.txt")), sep="\n")
 ```
 
+Define helper functions.
+
+```{r}
+niceTable <- function (dt) {
+  require(xtable)
+  print(xtable(dt), type="html", include.rownames=FALSE)
+}
+```
+
+# General Payments
+
+**General Payments are defined as payments or other transfers of value not made in connection with a research agreement or research protocol.**
+
 Read the General Payments file into a data table.
 See *Appendix A: General Payments Detail* in [OpenPaymentsDataDictionary.pdf](http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf).
 
@@ -70,21 +84,22 @@ D <- D[,
 
 Find the 10 largest payments.
 
-```{r}
+```{r, results='asis'}
 topPayments <- sort(D[, Total_Amount_of_Payment_USDollars], decreasing=TRUE)[1:10]
-D[Total_Amount_of_Payment_USDollars %in% topPayments,
-  list(Total_Amount_of_Payment_USDollars,
-       Date_of_Payment,
-       Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name,
-       Physician_First_Name,
-       Physician_Last_Name,
-       Teaching_Hospital_Name,
-       Recipient_City,
-       Recipient_State,
-       Recipient_Postal_Code,
-       Name_of_Associated_Covered_Drug_or_Biological1,
-       Form_of_Payment_or_Transfer_of_Value,
-       Nature_of_Payment_or_Transfer_of_Value)][order(Total_Amount_of_Payment_USDollars, decreasing=TRUE)]
+top <- D[Total_Amount_of_Payment_USDollars %in% topPayments,
+         list(Total_Amount_of_Payment_USDollars,
+              Date_of_Payment,
+              Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name,
+              Physician_First_Name,
+              Physician_Last_Name,
+              Teaching_Hospital_Name,
+              Recipient_City,
+              Recipient_State,
+              Recipient_Postal_Code,
+              Name_of_Associated_Covered_Drug_or_Biological1,
+              Form_of_Payment_or_Transfer_of_Value,
+              Nature_of_Payment_or_Transfer_of_Value)][order(Total_Amount_of_Payment_USDollars, decreasing=TRUE)]
+niceTable(top)
 ```
 
 How many unique drugs or biologicals are represented?
@@ -96,30 +111,91 @@ length(unique(D[, Name_of_Associated_Covered_Drug_or_Biological1]))
 
 List the drugs or biologicals with more than $1M in total payments.
 
-```{r}
+```{r, results='asis'}
 drugs <- D[,
            list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
                 nRecords = .N),
            Name_of_Associated_Covered_Drug_or_Biological1][order(sumPayments, decreasing=TRUE)]
-drugs[sumPayments > 1E6]
+niceTable(drugs[sumPayments > 1E6])
 ```
 
 List the teaching hospitals with more than $1M in total payments.
 
-```{r}
+```{r, results='asis'}
 hosps <- D[grep("Teaching Hospital", Covered_Recipient_Type),
            list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
                 nRecords = .N),
            list(Teaching_Hospital_Name, Recipient_City, Recipient_State)][order(sumPayments, decreasing=TRUE)]
-hosps[sumPayments > 1E6]
+niceTable(hosps[sumPayments > 1E6])
 ```
 
 List the physicians with more than $1M in total payments.
 
-```{r}
+```{r, results='asis'}
 docs <- D[grep("Physician", Covered_Recipient_Type),
           list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
                nRecords = .N),
           list(Physician_Last_Name, Physician_First_Name, Recipient_City, Recipient_State)][order(sumPayments, decreasing=TRUE)]
-docs[sumPayments > 1E6]
+niceTable(docs[sumPayments > 1E6])
+```
+
+List the payments to OHSU.
+
+```{r, results='asis'}
+ohsu <- D[grep("Oregon Health & Science University", Teaching_Hospital_Name),
+          list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+               nRecords = .N),
+          list(Teaching_Hospital_Name)]
+niceTable(ohsu)
+```
+
+
+# Research Payments
+
+**Research Payments are defined as payments or other transfers of value made in connection with a research agreement or research protocol.**
+
+Read the Research Payments file into a data table.
+See *Appendix B: Research Payments Detail* in [OpenPaymentsDataDictionary.pdf](http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf).
+
+```{r}
+f <- filenames$Name[grep("RSRCH", filenames$Name)]
+f <- paste0(tempdir(), "\\", f)
+require(data.table)
+colNames <- names(fread(f, nrows=0))
+classes <- list(character=1:length(colNames))
+D <- fread(f,
+           colClasses=classes,
+           na.strings="",
+           stringsAsFactors=FALSE)
+```
+
+Recode dates and numeric columns.
+
+```{r}
+colNames[grep("Date", colNames)]
+D <- D[,
+       `:=` (Program_Year = as.integer(Program_Year),
+             Payment_Publication_Date = as.Date(Payment_Publication_Date, format="%m/%d/%Y"),
+             Date_of_Payment = as.Date(Date_of_Payment, format="%m/%d/%Y"),
+             Total_Amount_of_Payment_USDollars = as.numeric(Total_Amount_of_Payment_USDollars))]
+```
+
+List the principal investigators with more than $1M in total payments.
+
+```{r, results='asis'}
+pis <- D[,
+         list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+              nRecords = .N),
+         list(Principal_Investigator_Name1, Teaching_Hospital_Name, Recipient_City, Recipient_State)][order(sumPayments, decreasing=TRUE)]
+niceTable(pis[sumPayments > 1E6])
+```
+
+List the payments to OHSU.
+
+```{r, results='asis'}
+ohsu <- D[grep("Oregon Health & Science University", Teaching_Hospital_Name),
+          list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+               nRecords = .N),
+          list(Principal_Investigator_Name1, Teaching_Hospital_Name)][order(sumPayments, decreasing=TRUE)]
+niceTable(ohsu)
 ```
