@@ -54,13 +54,12 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <div id="header">
 <h1 class="title">CMS Open Payments</h1>
 <h4 class="author"><em>Benjamin Chan (<a href="mailto:chanb@ohsu.edu">chanb@ohsu.edu</a>)</em></h4>
-<h4 class="date"><em>Tuesday, September 30, 2014</em></h4>
 </div>
 
 
+<p><strong>Play around with the CMS <a href="http://www.cms.gov/OpenPayments">Open Payments</a> data.</strong></p>
 <p>2014-09-30</p>
 <p>R version 3.1.1 (2014-07-10)</p>
-<p><strong>Play around with the CMS <a href="http://www.cms.gov/OpenPayments">Open Payments</a> data.</strong></p>
 <p>Download the data dictionary.</p>
 <pre class="r"><code>url &lt;- &quot;http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf&quot;
 download.file(url, paste0(getwd(), &quot;\\OpenPaymentsDataDictionary.pdf&quot;), mode=&quot;wb&quot;)</code></pre>
@@ -106,7 +105,7 @@ filenames</code></pre>
 ## 
 ## File #4 - OPPR_SPLMTL_PH_PRFL_09302014.csv:
 ## A supplementary file that displays all of the physicians indicated as recipients of payments, other transfers of value, or ownership and investment interest in records reported in Open Payments. Each record includes the physicianâ€™s demographic information, specialties, and license information, as well as a unique identification number (Physician Profile ID) that can be used to search for a specific physician in the general, research, and physician ownership files.</code></pre>
-<p>Read the General Payments file into a data frame. See <em>Appendix A: General Payments Detail</em> in <em>OpenPaymentsDataDictionary.pdf</em>.</p>
+<p>Read the General Payments file into a data table. See <em>Appendix A: General Payments Detail</em> in <a href="http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf">OpenPaymentsDataDictionary.pdf</a>.</p>
 <pre class="r"><code>f &lt;- filenames$Name[grep(&quot;GNRL&quot;, filenames$Name)]
 f &lt;- paste0(tempdir(), &quot;\\&quot;, f)
 require(data.table)
@@ -121,21 +120,21 @@ Read 0.0% of 2626674 rows
 Read 5.3% of 2626674 rows
 Read 10.7% of 2626674 rows
 Read 16.0% of 2626674 rows
-Read 20.9% of 2626674 rows
-Read 26.6% of 2626674 rows
-Read 32.0% of 2626674 rows
-Read 37.3% of 2626674 rows
-Read 42.6% of 2626674 rows
-Read 48.0% of 2626674 rows
+Read 21.3% of 2626674 rows
+Read 27.0% of 2626674 rows
+Read 32.4% of 2626674 rows
+Read 37.7% of 2626674 rows
+Read 43.0% of 2626674 rows
+Read 48.4% of 2626674 rows
 Read 53.3% of 2626674 rows
 Read 58.6% of 2626674 rows
-Read 64.0% of 2626674 rows
-Read 69.3% of 2626674 rows
-Read 74.6% of 2626674 rows
-Read 79.9% of 2626674 rows
-Read 85.3% of 2626674 rows
-Read 90.6% of 2626674 rows
-Read 95.9% of 2626674 rows
+Read 64.3% of 2626674 rows
+Read 69.7% of 2626674 rows
+Read 75.0% of 2626674 rows
+Read 80.3% of 2626674 rows
+Read 86.0% of 2626674 rows
+Read 91.8% of 2626674 rows
+Read 97.5% of 2626674 rows
 Read 2626674 rows and 63 (of 63) columns from 1.340 GB file in 00:00:23</code></pre>
 <p>Recode dates and numeric columns.</p>
 <pre class="r"><code>colNames[grep(&quot;Date&quot;, colNames)]</code></pre>
@@ -146,35 +145,6 @@ Read 2626674 rows and 63 (of 63) columns from 1.340 GB file in 00:00:23</code></
              Date_of_Payment = as.Date(Date_of_Payment, format=&quot;%m/%d/%Y&quot;),
              Total_Amount_of_Payment_USDollars = as.numeric(Total_Amount_of_Payment_USDollars),
              Number_of_Payments_Included_in_Total_Amount = as.integer(Number_of_Payments_Included_in_Total_Amount))]</code></pre>
-<p>Find the largest payment.</p>
-<pre class="r"><code>maxPayment &lt;- max(D[, Total_Amount_of_Payment_USDollars])
-D[Total_Amount_of_Payment_USDollars == maxPayment,
-  list(Total_Amount_of_Payment_USDollars,
-       Date_of_Payment,
-       Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name,
-       Physician_First_Name,
-       Physician_Last_Name,
-       Teaching_Hospital_Name,
-       Recipient_City,
-       Recipient_State,
-       Recipient_Postal_Code,
-       Name_of_Associated_Covered_Drug_or_Biological1,
-       Form_of_Payment_or_Transfer_of_Value,
-       Nature_of_Payment_or_Transfer_of_Value)]</code></pre>
-<pre><code>##    Total_Amount_of_Payment_USDollars Date_of_Payment
-## 1:                           9645117      2013-11-21
-##    Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name
-## 1:                                           Genentech, Inc.
-##    Physician_First_Name Physician_Last_Name
-## 1:                   NA                  NA
-##                  Teaching_Hospital_Name Recipient_City Recipient_State
-## 1: CITY OF HOPE NATIONAL MEDICAL CENTER         DUARTE              CA
-##    Recipient_Postal_Code Name_of_Associated_Covered_Drug_or_Biological1
-## 1:                    NA                                             NA
-##    Form_of_Payment_or_Transfer_of_Value
-## 1:              Cash or cash equivalent
-##    Nature_of_Payment_or_Transfer_of_Value
-## 1:                     Royalty or License</code></pre>
 <p>Find the 10 largest payments.</p>
 <pre class="r"><code>topPayments &lt;- sort(D[, Total_Amount_of_Payment_USDollars], decreasing=TRUE)[1:10]
 D[Total_Amount_of_Payment_USDollars %in% topPayments,
@@ -338,6 +308,98 @@ drugs[sumPayments &gt; 1E6]</code></pre>
 ## 58:                                        XELJANZ     1014173     6376
 ## 59:                                        VIIBRYD     1008522    19252
 ##     Name_of_Associated_Covered_Drug_or_Biological1 sumPayments nRecords</code></pre>
+<p>List the teaching hospitals with more than $1M in total payments.</p>
+<pre class="r"><code>hosps &lt;- D[grep(&quot;Teaching Hospital&quot;, Covered_Recipient_Type),
+           list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+                nRecords = .N),
+           list(Teaching_Hospital_Name, Recipient_City, Recipient_State)][order(sumPayments, decreasing=TRUE)]
+hosps[sumPayments &gt; 1E6]</code></pre>
+<pre><code>##                               Teaching_Hospital_Name Recipient_City
+##  1:             CITY OF HOPE NATIONAL MEDICAL CENTER         DUARTE
+##  2:                 The General Hospital Corporation         BOSTON
+##  3:                  The Cleveland Clinic Foundation      CLEVELAND
+##  4:           Curators Of The University Of Missouri       Columbia
+##  5:       TRUSTEES OF THE UNIVERSITY OF PENNSYLVANIA   PHILADELPHIA
+##  6:                      Cedars-Sinai Medical Center    Los Angeles
+##  7:             DENVER HEALTH AND HOSPITAL AUTHORITY         DENVER
+##  8:             Denver Health And Hospital Authority         Denver
+##  9:              Duke University Health System, Inc.         Durham
+## 10:               St Lukes Roosevelt Hospital Center       New York
+## 11:                 The General Hospital Corporation         Boston
+## 12: University Of Texas M. D. Anderson Cancer Center        Houston
+## 13:                        Montefiore Medical Center          Bronx
+## 14:                          Nebraska Medical Center          Omaha
+## 15:                              Ucsd Medical Center      San Diego
+## 16:               Children'S Hospital Medical Center     Cincinnati
+## 17:          Regents Of The University Of California     Sacramento
+## 18:           Washington Hospital Center Corporation     Washington
+## 19:              Adventist Health System-Sunbelt Inc        Orlando
+## 20:         University Of California - San Francisco  San Francisco
+##     Recipient_State sumPayments nRecords
+##  1:              CA   122586713       74
+##  2:              MA    10328637       20
+##  3:              OH     4264189        4
+##  4:              MO     3572049      120
+##  5:              PA     3482700       12
+##  6:              CA     2659434      436
+##  7:              CO     2642643      209
+##  8:              CO     2464203       43
+##  9:              NC     2440514       85
+## 10:              NY     2181846      116
+## 11:              MA     2028861      109
+## 12:              TX     1610644       60
+## 13:              NY     1484225       63
+## 14:              NE     1360818       29
+## 15:              CA     1316123       43
+## 16:              OH     1256820       67
+## 17:              CA     1119140       62
+## 18:              DC     1073164       48
+## 19:              FL     1072733      742
+## 20:              CA     1008085       65</code></pre>
+<p>List the physicians with more than $1M in total payments.</p>
+<pre class="r"><code>docs &lt;- D[grep(&quot;Physician&quot;, Covered_Recipient_Type),
+          list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+               nRecords = .N),
+          list(Physician_Last_Name, Physician_First_Name, Recipient_City, Recipient_State)][order(sumPayments, decreasing=TRUE)]
+docs[sumPayments &gt; 1E6]</code></pre>
+<pre><code>##     Physician_Last_Name Physician_First_Name    Recipient_City
+##  1:            BURKHART              STEPHEN       SAN ANTONIO
+##  2:             RANAWAT           CHITRANJAN          NEW YORK
+##  3:           THORNHILL               THOMAS            BOSTON
+##  4:               SCOTT              RICHARD            BOSTON
+##  5:          ELATTRACHE                 NEAL       LOS ANGELES
+##  6:              CHUTER              TIMOTHY     SAN FRANCISCO
+##  7:                Lynn             Lawrence       Westerville
+##  8:                HAAS               STEVEN          NEW YORK
+##  9:            FORDTRAN                 JOHN            DALLAS
+## 10:               JONES              RICHARD            DALLAS
+## 11:                RIES              MICHAEL       CARSON CITY
+## 12:                HAID                REGIS           Atlanta
+## 13:             RANAWAT                 AMAR          NEW YORK
+## 14:             PADGETT              DOUGLAS          New York
+## 15:            LAVERNIA               CARLOS             MIAMI
+## 16:             JACKSON                ROGER NORTH KANSAS CITY
+## 17:             SANDERS                  ROY    TEMPLE TERRACE
+## 18:             RUSSELL               THOMAS        GERMANTOWN
+##     Recipient_State sumPayments nRecords
+##  1:              TX     7356276       52
+##  2:              NY     3994022       19
+##  3:              MA     3921410       18
+##  4:              MA     3849711        3
+##  5:              CA     2413281       20
+##  6:              CA     2304899        4
+##  7:              OH     2149690        2
+##  8:              NY     1752797       57
+##  9:              TX     1715554       15
+## 10:              TX     1457517       27
+## 11:              NV     1185803       94
+## 12:              GA     1171246       11
+## 13:              NY     1154597       29
+## 14:              NY     1139670        7
+## 15:              FL     1116854        6
+## 16:              MO     1020749        2
+## 17:              FL     1019519       49
+## 18:              TN     1016680       24</code></pre>
 
 
 </div>

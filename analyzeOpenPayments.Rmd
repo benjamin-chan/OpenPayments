@@ -1,17 +1,16 @@
 ---
 title: "CMS Open Payments"
 author: "Benjamin Chan (chanb@ohsu.edu)"
-date: "Tuesday, September 30, 2014"
 output:
   html_document:
     keep_md: yes
 ---
 
+**Play around with the CMS [Open Payments](http://www.cms.gov/OpenPayments) data.**
+
 `r Sys.Date()`
 
 `r R.Version()$version.string`
-
-**Play around with the CMS [Open Payments](http://www.cms.gov/OpenPayments) data.**
 
 Download the data dictionary.
 
@@ -42,8 +41,8 @@ Show the `README.txt` file.
 cat(readLines(paste0(tempdir(), "\\README.txt")), sep="\n")
 ```
 
-Read the General Payments file into a data frame.
-See *Appendix A: General Payments Detail* in *OpenPaymentsDataDictionary.pdf*.
+Read the General Payments file into a data table.
+See *Appendix A: General Payments Detail* in [OpenPaymentsDataDictionary.pdf](http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf).
 
 ```{r}
 f <- filenames$Name[grep("GNRL", filenames$Name)]
@@ -67,25 +66,6 @@ D <- D[,
              Date_of_Payment = as.Date(Date_of_Payment, format="%m/%d/%Y"),
              Total_Amount_of_Payment_USDollars = as.numeric(Total_Amount_of_Payment_USDollars),
              Number_of_Payments_Included_in_Total_Amount = as.integer(Number_of_Payments_Included_in_Total_Amount))]
-```
-
-Find the largest payment.
-
-```{r}
-maxPayment <- max(D[, Total_Amount_of_Payment_USDollars])
-D[Total_Amount_of_Payment_USDollars == maxPayment,
-  list(Total_Amount_of_Payment_USDollars,
-       Date_of_Payment,
-       Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name,
-       Physician_First_Name,
-       Physician_Last_Name,
-       Teaching_Hospital_Name,
-       Recipient_City,
-       Recipient_State,
-       Recipient_Postal_Code,
-       Name_of_Associated_Covered_Drug_or_Biological1,
-       Form_of_Payment_or_Transfer_of_Value,
-       Nature_of_Payment_or_Transfer_of_Value)]
 ```
 
 Find the 10 largest payments.
@@ -122,4 +102,24 @@ drugs <- D[,
                 nRecords = .N),
            Name_of_Associated_Covered_Drug_or_Biological1][order(sumPayments, decreasing=TRUE)]
 drugs[sumPayments > 1E6]
+```
+
+List the teaching hospitals with more than $1M in total payments.
+
+```{r}
+hosps <- D[grep("Teaching Hospital", Covered_Recipient_Type),
+           list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+                nRecords = .N),
+           list(Teaching_Hospital_Name, Recipient_City, Recipient_State)][order(sumPayments, decreasing=TRUE)]
+hosps[sumPayments > 1E6]
+```
+
+List the physicians with more than $1M in total payments.
+
+```{r}
+docs <- D[grep("Physician", Covered_Recipient_Type),
+          list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+               nRecords = .N),
+          list(Physician_Last_Name, Physician_First_Name, Recipient_City, Recipient_State)][order(sumPayments, decreasing=TRUE)]
+docs[sumPayments > 1E6]
 ```
