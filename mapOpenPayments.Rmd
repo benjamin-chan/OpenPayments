@@ -1,19 +1,24 @@
-# CMS Open Payments
-Benjamin Chan (chanb@ohsu.edu)  
+---
+title: "CMS Open Payments"
+author: "Benjamin Chan (chanb@ohsu.edu)"
+output:
+  html_document:
+    keep_md: yes
+    toc: yes
+---
 
 **Play around with the CMS [Open Payments](http://www.cms.gov/OpenPayments) data.**
 
-2014-10-01
+`r Sys.Date()`
 
-R version 3.1.1 (2014-07-10)
+`r R.Version()$version.string`
 
 
 Run the script to read the data.
 Hide the code and the output since it's under version control on [GitHub](https://github.com/benjamin-chan/OpenPayments).
 Also, source a function library.
 
-
-```r
+```{r, results="hide"}
 source("getData.r")
 source("library.r")
 ```
@@ -21,8 +26,7 @@ source("library.r")
 
 Map at the state level.
 
-
-```r
+```{r mapStates, fig.width=10}
 DAgg <- D[,
           list(value = sum(Total_Amount_of_Payment_USDollars) / 1E6,
                region = Recipient_State),
@@ -33,13 +37,10 @@ choroplethr(DAgg,
             title="General + Research Payments")
 ```
 
-![plot of chunk mapStates](./mapOpenPayments_files/figure-html/mapStates.png) 
-
 
 Map at the zip code level.
 
-
-```r
+```{r mapZipcodes, fig.width=10}
 DAgg <- D[,
           list(value = sum(Total_Amount_of_Payment_USDollars) / 1E6,
                region = Recipient_Zip_Code),
@@ -49,5 +50,3 @@ choroplethr(DAgg,
             lod="zip", 
             title="General + Research Payments")
 ```
-
-![plot of chunk mapZipcodes](./mapOpenPayments_files/figure-html/mapZipcodes.png) 
