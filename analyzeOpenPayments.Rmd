@@ -33,6 +33,7 @@ Unzip the file.
 ```{r}
 unzip(f, exdir=tempdir())
 filenames <- unzip(f, list=TRUE)
+unlink(f)
 filenames
 ```
 
@@ -68,6 +69,7 @@ D <- fread(f,
            colClasses=classes,
            na.strings="",
            stringsAsFactors=FALSE)
+unlink(f)
 ```
 
 Recode dates and numeric columns.
@@ -149,6 +151,45 @@ ohsu <- D[grep("Oregon Health & Science University", Teaching_Hospital_Name),
 niceTable(ohsu)
 ```
 
+List total payments by state.
+
+```{r, results='asis'}
+state <- D[,
+           list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+                nRecords = .N),
+           Recipient_State]
+stateNames <- data.table(Recipient_State = state.abb, state.name)
+state <- merge(state, stateNames, by="Recipient_State")
+niceTable(state[order(sumPayments, decreasing=TRUE)])
+```
+
+Prepare for mapping.
+
+```{r}
+require(ggplot2)
+state <- state[, region := tolower(state.name)]
+mapUS <- data.table(map_data("state"))
+mapUS <- merge(mapUS, state, by="region")
+labels <- data.table(x=state.center$x, y=state.center$y, state.abb)
+labels <- labels[!(state.abb %in% c("AK", "HI"))]
+setkey(mapUS, order)
+```
+
+Map.
+
+```{r mapUSGnrl, fig.height=10, fig.width=10}
+ggplot(mapUS, aes(x=long, y=lat, group=group)) +
+  labs(title="General Payments") +
+  annotate("text", x=-Inf, y=-Inf, label="Source: http://www.cms.gov/OpenPayments", color="black") +
+  geom_polygon(aes(fill=cut_number(sumPayments / 1E6, 5))) +
+  geom_path(color="gray", linestyle=2) +
+  geom_text(data=labels, aes(x=x, y=y, label=state.abb, group=NULL), size=3) +
+  scale_fill_brewer("$, millions", palette="Greens") +
+  coord_map() +
+  theme_minimal() +
+  theme(axis.text=element_blank(), axis.title=element_blank(), axis.ticks=element_blank(), panel.grid.major=element_blank())
+```
+
 
 # Research Payments
 
@@ -167,6 +208,7 @@ D <- fread(f,
            colClasses=classes,
            na.strings="",
            stringsAsFactors=FALSE)
+unlink(f)
 ```
 
 Recode dates and numeric columns.

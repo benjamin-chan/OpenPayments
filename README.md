@@ -3,7 +3,7 @@ Benjamin Chan (chanb@ohsu.edu)
 
 **Play around with the CMS [Open Payments](http://www.cms.gov/OpenPayments) data.**
 
-2014-09-30
+2014-10-01
 
 R version 3.1.1 (2014-07-10)
 
@@ -30,6 +30,7 @@ Unzip the file.
 ```r
 unzip(f, exdir=tempdir())
 filenames <- unzip(f, list=TRUE)
+unlink(f)
 filenames
 ```
 
@@ -111,24 +112,28 @@ D <- fread(f,
 ```
 ## 
 Read 0.0% of 2626674 rows
-Read 5.3% of 2626674 rows
-Read 11.0% of 2626674 rows
-Read 16.4% of 2626674 rows
-Read 21.7% of 2626674 rows
-Read 27.4% of 2626674 rows
-Read 33.1% of 2626674 rows
-Read 38.8% of 2626674 rows
-Read 44.5% of 2626674 rows
-Read 50.3% of 2626674 rows
-Read 55.6% of 2626674 rows
-Read 61.3% of 2626674 rows
-Read 67.0% of 2626674 rows
-Read 72.7% of 2626674 rows
-Read 78.4% of 2626674 rows
-Read 84.1% of 2626674 rows
-Read 90.2% of 2626674 rows
+Read 6.5% of 2626674 rows
+Read 12.9% of 2626674 rows
+Read 19.0% of 2626674 rows
+Read 25.1% of 2626674 rows
+Read 31.2% of 2626674 rows
+Read 36.9% of 2626674 rows
+Read 42.6% of 2626674 rows
+Read 48.4% of 2626674 rows
+Read 53.7% of 2626674 rows
+Read 59.0% of 2626674 rows
+Read 64.3% of 2626674 rows
+Read 69.7% of 2626674 rows
+Read 75.0% of 2626674 rows
+Read 80.3% of 2626674 rows
+Read 85.7% of 2626674 rows
+Read 91.0% of 2626674 rows
 Read 95.9% of 2626674 rows
-Read 2626674 rows and 63 (of 63) columns from 1.340 GB file in 00:00:21
+Read 2626674 rows and 63 (of 63) columns from 1.340 GB file in 00:00:23
+```
+
+```r
+unlink(f)
 ```
 
 Recode dates and numeric columns.
@@ -177,7 +182,7 @@ niceTable(top)
 ```
 
 <!-- html table generated in R 3.1.1 by xtable 1.7-3 package -->
-<!-- Tue Sep 30 15:52:40 2014 -->
+<!-- Wed Oct 01 10:56:21 2014 -->
 <TABLE border=1>
 <TR> <TH> Total_Amount_of_Payment_USDollars </TH> <TH> Date_of_Payment </TH> <TH> Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name </TH> <TH> Physician_First_Name </TH> <TH> Physician_Last_Name </TH> <TH> Teaching_Hospital_Name </TH> <TH> Recipient_City </TH> <TH> Recipient_State </TH> <TH> Recipient_Postal_Code </TH> <TH> Name_of_Associated_Covered_Drug_or_Biological1 </TH> <TH> Form_of_Payment_or_Transfer_of_Value </TH> <TH> Nature_of_Payment_or_Transfer_of_Value </TH>  </TR>
   <TR> <TD align="right"> 9645117.00 </TD> <TD align="right"> 16030.00 </TD> <TD> Genentech, Inc. </TD> <TD>  </TD> <TD>  </TD> <TD> CITY OF HOPE NATIONAL MEDICAL CENTER </TD> <TD> DUARTE </TD> <TD> CA </TD> <TD>  </TD> <TD>  </TD> <TD> Cash or cash equivalent </TD> <TD> Royalty or License </TD> </TR>
@@ -216,7 +221,7 @@ niceTable(drugs[sumPayments > 1E6])
 ```
 
 <!-- html table generated in R 3.1.1 by xtable 1.7-3 package -->
-<!-- Tue Sep 30 15:52:41 2014 -->
+<!-- Wed Oct 01 10:56:23 2014 -->
 <TABLE border=1>
 <TR> <TH> Name_of_Associated_Covered_Drug_or_Biological1 </TH> <TH> sumPayments </TH> <TH> nRecords </TH>  </TR>
   <TR> <TD>  </TD> <TD align="right"> 389531889.10 </TD> <TD align="right"> 652336 </TD> </TR>
@@ -292,7 +297,7 @@ niceTable(hosps[sumPayments > 1E6])
 ```
 
 <!-- html table generated in R 3.1.1 by xtable 1.7-3 package -->
-<!-- Tue Sep 30 15:52:42 2014 -->
+<!-- Wed Oct 01 10:56:25 2014 -->
 <TABLE border=1>
 <TR> <TH> Teaching_Hospital_Name </TH> <TH> Recipient_City </TH> <TH> Recipient_State </TH> <TH> sumPayments </TH> <TH> nRecords </TH>  </TR>
   <TR> <TD> CITY OF HOPE NATIONAL MEDICAL CENTER </TD> <TD> DUARTE </TD> <TD> CA </TD> <TD align="right"> 122586713.41 </TD> <TD align="right">  74 </TD> </TR>
@@ -329,7 +334,7 @@ niceTable(docs[sumPayments > 1E6])
 ```
 
 <!-- html table generated in R 3.1.1 by xtable 1.7-3 package -->
-<!-- Tue Sep 30 15:52:45 2014 -->
+<!-- Wed Oct 01 10:56:31 2014 -->
 <TABLE border=1>
 <TR> <TH> Physician_Last_Name </TH> <TH> Physician_First_Name </TH> <TH> Recipient_City </TH> <TH> Recipient_State </TH> <TH> sumPayments </TH> <TH> nRecords </TH>  </TR>
   <TR> <TD> BURKHART </TD> <TD> STEPHEN </TD> <TD> SAN ANTONIO </TD> <TD> TX </TD> <TD align="right"> 7356275.69 </TD> <TD align="right">  52 </TD> </TR>
@@ -364,11 +369,111 @@ niceTable(ohsu)
 ```
 
 <!-- html table generated in R 3.1.1 by xtable 1.7-3 package -->
-<!-- Tue Sep 30 15:52:45 2014 -->
+<!-- Wed Oct 01 10:56:31 2014 -->
 <TABLE border=1>
 <TR> <TH> Teaching_Hospital_Name </TH> <TH> sumPayments </TH> <TH> nRecords </TH>  </TR>
   <TR> <TD> Oregon Health &amp; Science University </TD> <TD align="right"> 321818.99 </TD> <TD align="right">  67 </TD> </TR>
    </TABLE>
+
+List total payments by state.
+
+
+```r
+state <- D[,
+           list(sumPayments = sum(Total_Amount_of_Payment_USDollars),
+                nRecords = .N),
+           Recipient_State]
+stateNames <- data.table(Recipient_State = state.abb, state.name)
+state <- merge(state, stateNames, by="Recipient_State")
+niceTable(state[order(sumPayments, decreasing=TRUE)])
+```
+
+<!-- html table generated in R 3.1.1 by xtable 1.7-3 package -->
+<!-- Wed Oct 01 10:56:31 2014 -->
+<TABLE border=1>
+<TR> <TH> Recipient_State </TH> <TH> sumPayments </TH> <TH> nRecords </TH> <TH> state.name </TH>  </TR>
+  <TR> <TD> CA </TD> <TD align="right"> 177581359.19 </TD> <TD align="right"> 219965 </TD> <TD> California </TD> </TR>
+  <TR> <TD> NY </TD> <TD align="right"> 56226275.07 </TD> <TD align="right"> 246159 </TD> <TD> New York </TD> </TR>
+  <TR> <TD> TX </TD> <TD align="right"> 54700735.83 </TD> <TD align="right"> 255270 </TD> <TD> Texas </TD> </TR>
+  <TR> <TD> MA </TD> <TD align="right"> 40351208.05 </TD> <TD align="right"> 55929 </TD> <TD> Massachusetts </TD> </TR>
+  <TR> <TD> FL </TD> <TD align="right"> 35464310.76 </TD> <TD align="right"> 202164 </TD> <TD> Florida </TD> </TR>
+  <TR> <TD> PA </TD> <TD align="right"> 32157875.28 </TD> <TD align="right"> 169675 </TD> <TD> Pennsylvania </TD> </TR>
+  <TR> <TD> OH </TD> <TD align="right"> 25031525.39 </TD> <TD align="right"> 107837 </TD> <TD> Ohio </TD> </TR>
+  <TR> <TD> NC </TD> <TD align="right"> 18783727.17 </TD> <TD align="right"> 85725 </TD> <TD> North Carolina </TD> </TR>
+  <TR> <TD> MI </TD> <TD align="right"> 18060510.51 </TD> <TD align="right"> 113166 </TD> <TD> Michigan </TD> </TR>
+  <TR> <TD> IL </TD> <TD align="right"> 17639774.41 </TD> <TD align="right"> 94031 </TD> <TD> Illinois </TD> </TR>
+  <TR> <TD> MO </TD> <TD align="right"> 17429665.65 </TD> <TD align="right"> 63701 </TD> <TD> Missouri </TD> </TR>
+  <TR> <TD> NJ </TD> <TD align="right"> 13089281.38 </TD> <TD align="right"> 107527 </TD> <TD> New Jersey </TD> </TR>
+  <TR> <TD> GA </TD> <TD align="right"> 11856004.84 </TD> <TD align="right"> 83421 </TD> <TD> Georgia </TD> </TR>
+  <TR> <TD> AZ </TD> <TD align="right"> 11431722.59 </TD> <TD align="right"> 63016 </TD> <TD> Arizona </TD> </TR>
+  <TR> <TD> CO </TD> <TD align="right"> 10810251.61 </TD> <TD align="right"> 13560 </TD> <TD> Colorado </TD> </TR>
+  <TR> <TD> WA </TD> <TD align="right"> 10288625.85 </TD> <TD align="right"> 40741 </TD> <TD> Washington </TD> </TR>
+  <TR> <TD> TN </TD> <TD align="right"> 9934071.89 </TD> <TD align="right"> 62522 </TD> <TD> Tennessee </TD> </TR>
+  <TR> <TD> MN </TD> <TD align="right"> 9644445.51 </TD> <TD align="right"> 13855 </TD> <TD> Minnesota </TD> </TR>
+  <TR> <TD> MD </TD> <TD align="right"> 9616627.52 </TD> <TD align="right"> 44478 </TD> <TD> Maryland </TD> </TR>
+  <TR> <TD> VA </TD> <TD align="right"> 9162656.97 </TD> <TD align="right"> 70023 </TD> <TD> Virginia </TD> </TR>
+  <TR> <TD> IN </TD> <TD align="right"> 8892836.40 </TD> <TD align="right"> 51153 </TD> <TD> Indiana </TD> </TR>
+  <TR> <TD> KY </TD> <TD align="right"> 6632289.65 </TD> <TD align="right"> 54088 </TD> <TD> Kentucky </TD> </TR>
+  <TR> <TD> CT </TD> <TD align="right"> 6391139.25 </TD> <TD align="right"> 37093 </TD> <TD> Connecticut </TD> </TR>
+  <TR> <TD> SC </TD> <TD align="right"> 5726517.66 </TD> <TD align="right"> 50548 </TD> <TD> South Carolina </TD> </TR>
+  <TR> <TD> UT </TD> <TD align="right"> 5187288.25 </TD> <TD align="right"> 9799 </TD> <TD> Utah </TD> </TR>
+  <TR> <TD> NV </TD> <TD align="right"> 4479816.30 </TD> <TD align="right"> 21011 </TD> <TD> Nevada </TD> </TR>
+  <TR> <TD> OK </TD> <TD align="right"> 4159726.86 </TD> <TD align="right"> 37953 </TD> <TD> Oklahoma </TD> </TR>
+  <TR> <TD> OR </TD> <TD align="right"> 3854941.49 </TD> <TD align="right"> 19040 </TD> <TD> Oregon </TD> </TR>
+  <TR> <TD> NE </TD> <TD align="right"> 3449623.90 </TD> <TD align="right"> 16778 </TD> <TD> Nebraska </TD> </TR>
+  <TR> <TD> MS </TD> <TD align="right"> 2832978.44 </TD> <TD align="right"> 29958 </TD> <TD> Mississippi </TD> </TR>
+  <TR> <TD> WI </TD> <TD align="right"> 2659294.25 </TD> <TD align="right"> 8287 </TD> <TD> Wisconsin </TD> </TR>
+  <TR> <TD> AL </TD> <TD align="right"> 2134085.36 </TD> <TD align="right"> 15435 </TD> <TD> Alabama </TD> </TR>
+  <TR> <TD> AR </TD> <TD align="right"> 2050801.83 </TD> <TD align="right"> 21414 </TD> <TD> Arkansas </TD> </TR>
+  <TR> <TD> WV </TD> <TD align="right"> 1990844.20 </TD> <TD align="right"> 22554 </TD> <TD> West Virginia </TD> </TR>
+  <TR> <TD> KS </TD> <TD align="right"> 1965676.33 </TD> <TD align="right"> 20376 </TD> <TD> Kansas </TD> </TR>
+  <TR> <TD> IA </TD> <TD align="right"> 1913695.71 </TD> <TD align="right"> 10383 </TD> <TD> Iowa </TD> </TR>
+  <TR> <TD> LA </TD> <TD align="right"> 1797501.48 </TD> <TD align="right"> 14456 </TD> <TD> Louisiana </TD> </TR>
+  <TR> <TD> NH </TD> <TD align="right"> 1572101.99 </TD> <TD align="right"> 7160 </TD> <TD> New Hampshire </TD> </TR>
+  <TR> <TD> RI </TD> <TD align="right"> 1490281.45 </TD> <TD align="right"> 10100 </TD> <TD> Rhode Island </TD> </TR>
+  <TR> <TD> DE </TD> <TD align="right"> 1249034.73 </TD> <TD align="right"> 5960 </TD> <TD> Delaware </TD> </TR>
+  <TR> <TD> SD </TD> <TD align="right"> 893695.91 </TD> <TD align="right"> 4429 </TD> <TD> South Dakota </TD> </TR>
+  <TR> <TD> ME </TD> <TD align="right"> 799211.11 </TD> <TD align="right"> 3911 </TD> <TD> Maine </TD> </TR>
+  <TR> <TD> ID </TD> <TD align="right"> 598278.59 </TD> <TD align="right"> 5146 </TD> <TD> Idaho </TD> </TR>
+  <TR> <TD> HI </TD> <TD align="right"> 552925.58 </TD> <TD align="right"> 7369 </TD> <TD> Hawaii </TD> </TR>
+  <TR> <TD> NM </TD> <TD align="right"> 414669.76 </TD> <TD align="right"> 4735 </TD> <TD> New Mexico </TD> </TR>
+  <TR> <TD> ND </TD> <TD align="right"> 374029.39 </TD> <TD align="right"> 3908 </TD> <TD> North Dakota </TD> </TR>
+  <TR> <TD> VT </TD> <TD align="right"> 338665.15 </TD> <TD align="right"> 380 </TD> <TD> Vermont </TD> </TR>
+  <TR> <TD> MT </TD> <TD align="right"> 271395.12 </TD> <TD align="right"> 1732 </TD> <TD> Montana </TD> </TR>
+  <TR> <TD> AK </TD> <TD align="right"> 182569.76 </TD> <TD align="right"> 2403 </TD> <TD> Alaska </TD> </TR>
+  <TR> <TD> WY </TD> <TD align="right"> 180870.43 </TD> <TD align="right"> 1407 </TD> <TD> Wyoming </TD> </TR>
+   </TABLE>
+
+Prepare for mapping.
+
+
+```r
+require(ggplot2)
+state <- state[, region := tolower(state.name)]
+mapUS <- data.table(map_data("state"))
+mapUS <- merge(mapUS, state, by="region")
+labels <- data.table(x=state.center$x, y=state.center$y, state.abb)
+labels <- labels[!(state.abb %in% c("AK", "HI"))]
+setkey(mapUS, order)
+```
+
+Map.
+
+
+```r
+ggplot(mapUS, aes(x=long, y=lat, group=group)) +
+  labs(title="General Payments") +
+  annotate("text", x=-Inf, y=-Inf, label="Source: http://www.cms.gov/OpenPayments", color="black") +
+  geom_polygon(aes(fill=cut_number(sumPayments / 1E6, 5))) +
+  geom_path(color="gray", linestyle=2) +
+  geom_text(data=labels, aes(x=x, y=y, label=state.abb, group=NULL), size=3) +
+  scale_fill_brewer("$, millions", palette="Greens") +
+  coord_map() +
+  theme_minimal() +
+  theme(axis.text=element_blank(), axis.title=element_blank(), axis.ticks=element_blank(), panel.grid.major=element_blank())
+```
+
+![plot of chunk mapUSGnrl](./analyzeOpenPayments_files/figure-html/mapUSGnrl.png) 
 
 
 # Research Payments
@@ -389,6 +494,7 @@ D <- fread(f,
            colClasses=classes,
            na.strings="",
            stringsAsFactors=FALSE)
+unlink(f)
 ```
 
 Recode dates and numeric columns.
@@ -422,7 +528,7 @@ niceTable(pis[sumPayments > 1E6])
 ```
 
 <!-- html table generated in R 3.1.1 by xtable 1.7-3 package -->
-<!-- Tue Sep 30 15:52:46 2014 -->
+<!-- Wed Oct 01 10:56:34 2014 -->
 <TABLE border=1>
 <TR> <TH> Principal_Investigator_Name1 </TH> <TH> Teaching_Hospital_Name </TH> <TH> Recipient_City </TH> <TH> Recipient_State </TH> <TH> sumPayments </TH> <TH> nRecords </TH>  </TR>
   <TR> <TD> Frank Stephen Hodi </TD> <TD> Dana Farber Cancer Institute </TD> <TD> Boston </TD> <TD> MA </TD> <TD align="right"> 6205489.59 </TD> <TD align="right">  11 </TD> </TR>
@@ -454,7 +560,7 @@ niceTable(ohsu)
 ```
 
 <!-- html table generated in R 3.1.1 by xtable 1.7-3 package -->
-<!-- Tue Sep 30 15:52:46 2014 -->
+<!-- Wed Oct 01 10:56:34 2014 -->
 <TABLE border=1>
 <TR> <TH> Principal_Investigator_Name1 </TH> <TH> Teaching_Hospital_Name </TH> <TH> sumPayments </TH> <TH> nRecords </TH>  </TR>
   <TR> <TD> Rodney Pommier </TD> <TD> Oregon Health &amp; Science University </TD> <TD align="right"> 1064015.49 </TD> <TD align="right">   1 </TD> </TR>
