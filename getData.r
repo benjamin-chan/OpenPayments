@@ -1,15 +1,8 @@
 # Download the data dictionary.
 url <- "http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf"
-download.file(url, paste0(getwd(), "\\OpenPaymentsDataDictionary.pdf"), mode="wb")
+download.file(url, paste0(file.path(getwd(), "OpenPaymentsDataDictionary.pdf")), mode="wb")
 # Download the *Datasets containing all records with identifying information on covered recipients* file.
-url <- "http://download.cms.gov/openpayments/09302014_ALLDTL.ZIP"
-f <- paste0(tempfile(), ".zip")
-download.file(url, f, mode="wb")
-# Unzip the file.
-unzip(f, exdir=tempdir())
-filenames <- unzip(f, list=TRUE)
-unlink(f)
-filenames
+filenames <- getAndUnzip("http://download.cms.gov/openpayments/09302014_ALLDTL.ZIP")
 # Show the `README.txt` file.
 cat(readLines(paste0(tempdir(), "\\README.txt")), sep="\n")
 
@@ -63,6 +56,31 @@ D <- D[,
 DRsrch <- D
 
 
-# rbind the data tables
-D <- rbind(DGnrl[, payType := "General"], DRsrch[, payType := "Research"], fill=TRUE)
-D <- D[, payType := factor(payType)]
+# row bind the data tables
+D <- rbind(DGnrl, DRsrch, fill=TRUE)
+
+
+# Create payment type factor
+D <- D[!is.na(General_Transaction_ID), payType := "General"]
+D <- D[!is.na(Research_Transaction_ID), payType := "Research"]
+
+
+# Create a payer column
+D <- D[, payer := Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name]
+# D <- D[, payer := toupper(Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_Name)]
+# Create a recipient column
+D <- D[grep("Hospital", Covered_Recipient_Type),
+       recipient := Teaching_Hospital_Name]
+D <- D[grepl("Physician", Covered_Recipient_Type),
+       recipient := paste(Physician_Last_Name, Physician_First_Name, sep=", ")]
+
+
+# Get zip code shapefiles
+# See [Plotting color map with zip codes in R or Python](http://stackoverflow.com/a/1446144)
+# filenames <- getAndUnzip("http://www2.census.gov/geo/tiger/GENZ2013/cb_2013_us_zcta510_500k.zip")
+# zipShapefile <- paste0(tempdir(), "\\", filenames$Name[grep("shp$", filenames$Name)])
+# require(maptools)
+# zipMap <- readShapeSpatial(zipShapefile)
+# labelpos <- data.frame(do.call(rbind, lapply(zipMap@polygons, function(x) x@labpt)))
+# names(labelpos) <- c("x","y")                        
+# zipMap@data <- data.frame(zipMap@data, labelpos)
