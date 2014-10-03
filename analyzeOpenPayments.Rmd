@@ -13,76 +13,14 @@ output:
 
 `r R.Version()$version.string`
 
-Download the data dictionary.
 
-```{r}
-url <- "http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf"
-download.file(url, paste0(getwd(), "\\OpenPaymentsDataDictionary.pdf"), mode="wb")
+Run the script to read the data.
+Hide the code and the output since it's under version control on [GitHub](https://github.com/benjamin-chan/OpenPayments).
+
+```{r, echo=FALSE, results="hide"}
+source("getData.r")
 ```
 
-Download the *Datasets containing all records with identifying information on covered recipients* file.
-
-```{r}
-url <- "http://download.cms.gov/openpayments/09302014_ALLDTL.ZIP"
-f <- paste0(tempfile(), ".zip")
-download.file(url, f, mode="wb")
-```
-
-Unzip the file.
-
-```{r}
-unzip(f, exdir=tempdir())
-filenames <- unzip(f, list=TRUE)
-unlink(f)
-filenames
-```
-
-Show the `README.txt` file.
-
-```{r}
-cat(readLines(paste0(tempdir(), "\\README.txt")), sep="\n")
-```
-
-Define helper functions.
-
-```{r}
-niceTable <- function (dt) {
-  require(xtable)
-  print(xtable(dt), type="html", include.rownames=FALSE)
-}
-```
-
-# General Payments
-
-**General Payments are defined as payments or other transfers of value not made in connection with a research agreement or research protocol.**
-
-Read the General Payments file into a data table.
-See *Appendix A: General Payments Detail* in [OpenPaymentsDataDictionary.pdf](http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf).
-
-```{r}
-f <- filenames$Name[grep("GNRL", filenames$Name)]
-f <- paste0(tempdir(), "\\", f)
-require(data.table)
-colNames <- names(fread(f, nrows=0))
-classes <- list(character=1:length(colNames))
-D <- fread(f,
-           colClasses=classes,
-           na.strings="",
-           stringsAsFactors=FALSE)
-unlink(f)
-```
-
-Recode dates and numeric columns.
-
-```{r}
-colNames[grep("Date", colNames)]
-D <- D[,
-       `:=` (Program_Year = as.integer(Program_Year),
-             Payment_Publication_Date = as.Date(Payment_Publication_Date, format="%m/%d/%Y"),
-             Date_of_Payment = as.Date(Date_of_Payment, format="%m/%d/%Y"),
-             Total_Amount_of_Payment_USDollars = as.numeric(Total_Amount_of_Payment_USDollars),
-             Number_of_Payments_Included_in_Total_Amount = as.integer(Number_of_Payments_Included_in_Total_Amount))]
-```
 
 Find the 10 largest payments.
 
@@ -190,37 +128,6 @@ ggplot(mapUS, aes(x=long, y=lat, group=group)) +
   theme(axis.text=element_blank(), axis.title=element_blank(), axis.ticks=element_blank(), panel.grid.major=element_blank())
 ```
 
-
-# Research Payments
-
-**Research Payments are defined as payments or other transfers of value made in connection with a research agreement or research protocol.**
-
-Read the Research Payments file into a data table.
-See *Appendix B: Research Payments Detail* in [OpenPaymentsDataDictionary.pdf](http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf).
-
-```{r}
-f <- filenames$Name[grep("RSRCH", filenames$Name)]
-f <- paste0(tempdir(), "\\", f)
-require(data.table)
-colNames <- names(fread(f, nrows=0))
-classes <- list(character=1:length(colNames))
-D <- fread(f,
-           colClasses=classes,
-           na.strings="",
-           stringsAsFactors=FALSE)
-unlink(f)
-```
-
-Recode dates and numeric columns.
-
-```{r}
-colNames[grep("Date", colNames)]
-D <- D[,
-       `:=` (Program_Year = as.integer(Program_Year),
-             Payment_Publication_Date = as.Date(Payment_Publication_Date, format="%m/%d/%Y"),
-             Date_of_Payment = as.Date(Date_of_Payment, format="%m/%d/%Y"),
-             Total_Amount_of_Payment_USDollars = as.numeric(Total_Amount_of_Payment_USDollars))]
-```
 
 List the principal investigators with more than $1M in total payments.
 

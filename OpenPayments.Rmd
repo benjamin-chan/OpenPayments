@@ -9,10 +9,12 @@ output:
   
 **Play around with the CMS [Open Payments](http://www.cms.gov/OpenPayments) data.**
   
-`r Sys.Date()`
+`r Sys.time()`
 
 `r R.Version()$version.string`
 
+
+# Get the data
 
 Run the script to read the data.
 Hide the code and the output since it's under version control on [GitHub](https://github.com/benjamin-chan/OpenPayments).
@@ -23,6 +25,9 @@ setwd(file.path("~", "GitHub Repositories", "OpenPayments"))
 source("library.r")
 source("getData.r")
 ```
+
+Use [OpenRefine](http://openrefine.org/) to clean the data.
+This requires an interactive session of OpenRefine.
 
 
 # Mapping payments
@@ -43,6 +48,9 @@ choroplethr(DAgg,
 
 
 # Network of payers and recipients
+
+
+## Select recipients
 
 The network of payers and recipients is huge.
 Narrow the focus to **include only the following recipients**
@@ -80,4 +88,59 @@ plot(G,
      vertex.label.color="black",
      vertex.label.family="sans",
      vertex.frame.color=NA)
+```
+
+
+## Big payments
+
+Include payment of more than $100,000.
+
+Create a graph for the entire network.
+
+```{r}
+D[, 
+  list(n = .N,
+       sumAmtMillions = sum(Total_Amount_of_Payment_USDollars) / 1E6), 
+  amtCategory][, 
+               list(amtCategory,
+                    amtLevel = unclass(amtCategory),
+                    n,
+                    pct = n / sum(n) * 100,
+                    sumAmtMillions,
+                    pctSumAmt = sumAmtMillions / sum(sumAmtMillions) * 100)][order(amtCategory)]
+DAgg <- D[Total_Amount_of_Payment_USDollars > 1E5,
+          list(sumAmtMillions = sum(Total_Amount_of_Payment_USDollars) / 1E6),
+          list(payer, recipient)]
+DAgg <- DAgg[,
+             `:=` (sumAmtCategory = cut(sumAmtMillions, c(1E-1, 1E0, 1E1, 1E2, 1E3), include.lowest=TRUE),
+                   sumAmtScaled = scale(sumAmtMillions, center=FALSE, scale=TRUE))]
+DAgg[,
+     list(n = .N,
+          sumAmtMillions = sum(sumAmtMillions)),
+     sumAmtCategory][order(sumAmtCategory)]
+vertices <- rbind(unique(DAgg[, list(name = payer, type = "Payer")]),
+                  unique(DAgg[, list(name = recipient, type = "Recipient")]))
+G <- graph.data.frame(DAgg, vertices=vertices, directed=TRUE)
+V(G)$size <- 0
+V(G)$color <- ifelse(V(G)$type == "Payer", "red", "black")
+E(G)$color <- rgb(0, 128, 0, 128, maxColorValue=255)
+E(G)$weight <- unclass(DAgg$sumAmtCategory)
+E(G)$width <- unclass(DAgg$sumAmtCategory)
+```
+
+Plot the network.
+Get the file at [./OpenPayments_files/figure-html/networkBigPayments.png](https://github.com/benjamin-chan/OpenPayments/blob/master/OpenPayments_files/figure-html/networkBigPayments.png) for the full effect.
+
+```{r networkBigPayments, fig.height=30, fig.width=30}
+plot(as.undirected(G),
+     vertex.label.cex=1,
+     vertex.label.color=V(G)$color,
+     vertex.label.family="sans",
+     vertex.frame.color=NA)
+```
+
+Write GraphML dataset for use in [Gephi](http://gephi.github.io/).
+
+```{r}
+write.graph(G, file.path(getwd(), "openpayments.graphml"), format="graphml")
 ```

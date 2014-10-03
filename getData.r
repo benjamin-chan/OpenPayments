@@ -1,6 +1,9 @@
 # Download the data dictionary.
-url <- "http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf"
-download.file(url, paste0(file.path(getwd(), "OpenPaymentsDataDictionary.pdf")), mode="wb")
+f <- paste0(file.path(getwd(), "OpenPaymentsDataDictionary.pdf"))
+if (!file.exists(f)) {
+  url <- "http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf"
+  download.file(url, , mode="wb")
+}
 # Download the *Datasets containing all records with identifying information on covered recipients* file.
 filenames <- getAndUnzip("http://download.cms.gov/openpayments/09302014_ALLDTL.ZIP")
 # Show the `README.txt` file.
@@ -73,6 +76,16 @@ D <- D[grep("Hospital", Covered_Recipient_Type),
        recipient := Teaching_Hospital_Name]
 D <- D[grepl("Physician", Covered_Recipient_Type),
        recipient := paste(Physician_Last_Name, Physician_First_Name, sep=", ")]
+
+
+# Create payment amount category factor
+D <- D[, amtCategory := cut(Total_Amount_of_Payment_USDollars, c(0, 1E0, 1E1, 1E2, 1E3, 1E4, 1E5, 1E6, 1E7), include.lowest=TRUE)]
+
+
+# Write subset of columns to file
+# For use in OpenRefine
+write.csv(D[, list(payer, recipient, payType, amount = Total_Amount_of_Payment_USDollars)],
+          file=file.path(getwd(), "data.csv"))
 
 
 # Get zip code shapefiles
