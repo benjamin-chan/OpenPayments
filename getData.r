@@ -2,7 +2,7 @@
 f <- paste0(file.path(getwd(), "OpenPaymentsDataDictionary.pdf"))
 if (!file.exists(f)) {
   url <- "http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf"
-  download.file(url, , mode="wb")
+  download.file(url, f, mode="wb")
 }
 # Download the *Datasets containing all records with identifying information on covered recipients* file.
 filenames <- getAndUnzip("http://download.cms.gov/openpayments/09302014_ALLDTL.ZIP")
