@@ -3,7 +3,7 @@ Benjamin Chan (chanb@ohsu.edu)
   
 **Play around with the CMS [Open Payments](http://www.cms.gov/OpenPayments) data.**
   
-2014-10-03 15:51:37
+2014-10-04 13:24:37
 
 R version 3.1.1 (2014-07-10)
 
@@ -33,13 +33,13 @@ Map payments at the state level.
 
 ```r
 DAgg <- D[,
-          list(value = sum(Total_Amount_of_Payment_USDollars) / 1E6,
+          list(value = sum(amount) / 1E6,
                region = Recipient_State),
           list(Recipient_State)]
 require(choroplethr)
 choroplethr(DAgg, 
             lod="state", 
-            title="General + Research Payments")
+            title="Open Payments")
 ```
 
 ![plot of chunk mapStates](./OpenPayments_files/figure-html/mapStates.png) 
@@ -63,7 +63,7 @@ Further narrow the focus to **include payers who made more than $10,000 in payme
 
 ```r
 DAgg <- D[,
-          list(sumAmt = sum(Total_Amount_of_Payment_USDollars)),
+          list(sumAmt = sum(amount)),
           list(payer, recipient)]
 regex <- "OREGON HEALTH|CITY OF HOPE|DANA FARBER|BURKHART, STEPHEN"
 DSubset <- DAgg[grepl(regex, toupper(recipient))]
@@ -113,10 +113,9 @@ Create a graph for the entire network.
 ```r
 D[, 
   list(n = .N,
-       sumAmtMillions = sum(Total_Amount_of_Payment_USDollars) / 1E6), 
+       sumAmtMillions = sum(amount) / 1E6), 
   amtCategory][, 
                list(amtCategory,
-                    amtLevel = unclass(amtCategory),
                     n,
                     pct = n / sum(n) * 100,
                     sumAmtMillions,
@@ -124,20 +123,21 @@ D[,
 ```
 
 ```
-##      amtCategory amtLevel       n       pct sumAmtMillions pctSumAmt
-## 1:         [0,1]        1   26370  0.995132        0.01548  0.001876
-## 2:        (1,10]        2  350800 13.238240        1.90645  0.230980
-## 3:      (10,100]        3 1909672 72.065841       45.32137  5.490988
-## 4:   (100,1e+03]        4  263388  9.939549       71.76997  8.695412
-## 5: (1e+03,1e+04]        5   93330  3.522021      237.74564 28.804477
-## 6: (1e+04,1e+05]        6    5704  0.215253      153.77947 18.631413
-## 7: (1e+05,1e+06]        7     571  0.021548      136.01983 16.479714
-## 8: (1e+06,1e+07]        8      64  0.002415      178.81917 21.665141
+##      amtCategory       n       pct sumAmtMillions pctSumAmt
+## 1:         [0,1]   26508 9.990e-01        0.01554  0.001386
+## 2:        (1,10]  350839 1.322e+01        1.90670  0.170066
+## 3:      (10,100] 1910119 7.199e+01       45.35024  4.044965
+## 4:   (100,1e+03]  264241 9.958e+00       72.09519  6.430452
+## 5: (1e+03,1e+04]   93982 3.542e+00      241.32082 21.524347
+## 6: (1e+04,1e+05]    6718 2.532e-01      192.23733 17.146399
+## 7: (1e+05,1e+06]     927 3.494e-02      223.39459 19.925437
+## 8: (1e+06,1e+07]      94 3.543e-03      237.39911 21.174554
+## 9:            NA       3 1.131e-04      107.43329  9.582395
 ```
 
 ```r
-DAgg <- D[Total_Amount_of_Payment_USDollars > 1E5,
-          list(sumAmtMillions = sum(Total_Amount_of_Payment_USDollars) / 1E6),
+DAgg <- D[amount > 1E5,
+          list(sumAmtMillions = sum(amount) / 1E6),
           list(payer, recipient)]
 DAgg <- DAgg[,
              `:=` (sumAmtCategory = cut(sumAmtMillions, c(1E-1, 1E0, 1E1, 1E2, 1E3), include.lowest=TRUE),
@@ -150,9 +150,10 @@ DAgg[,
 
 ```
 ##    sumAmtCategory   n sumAmtMillions
-## 1:        [0.1,1] 357         102.31
-## 2:         (1,10]  38          90.68
-## 3:    (100,1e+03]   1         121.85
+## 1:        [0.1,1] 686          185.2
+## 2:         (1,10]  67          143.1
+## 3:       (10,100]   4          118.0
+## 4:    (100,1e+03]   1          121.8
 ```
 
 ```r
@@ -172,7 +173,7 @@ Get the file at [./OpenPayments_files/figure-html/networkBigPayments.png](https:
 
 ```r
 plot(as.undirected(G),
-     vertex.label.cex=1,
+     vertex.label.cex=0.5,
      vertex.label.color=V(G)$color,
      vertex.label.family="sans",
      vertex.frame.color=NA)

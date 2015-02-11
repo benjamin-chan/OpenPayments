@@ -10,29 +10,16 @@ filenames <- getAndUnzip("http://download.cms.gov/openpayments/09302014_ALLDTL.Z
 cat(readLines(paste0(tempdir(), "\\README.txt")), sep="\n")
 
 
+require(data.table)
+
+
 # General Payments
 # **General Payments are defined as payments or other transfers of value not made in connection with a research agreement or research protocol.**
 # Read the General Payments file into a data table.
 # See *Appendix A: General Payments Detail* in [OpenPaymentsDataDictionary.pdf](http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf).
 f <- filenames$Name[grep("GNRL", filenames$Name)]
 f <- paste0(tempdir(), "\\", f)
-require(data.table)
-colNames <- names(fread(f, nrows=0))
-classes <- list(character=1:length(colNames))
-D <- fread(f,
-           colClasses=classes,
-           na.strings="",
-           stringsAsFactors=FALSE)
-unlink(f)
-# Recode dates and numeric columns.
-colNames[grep("Date", colNames)]
-D <- D[,
-       `:=` (Program_Year = as.integer(Program_Year),
-             Payment_Publication_Date = as.Date(Payment_Publication_Date, format="%m/%d/%Y"),
-             Date_of_Payment = as.Date(Date_of_Payment, format="%m/%d/%Y"),
-             Total_Amount_of_Payment_USDollars = as.numeric(Total_Amount_of_Payment_USDollars),
-             Number_of_Payments_Included_in_Total_Amount = as.integer(Number_of_Payments_Included_in_Total_Amount))]
-DGnrl <- D
+DGnrl <- readFile(f)
 
 
 # Research Payments
@@ -41,51 +28,65 @@ DGnrl <- D
 # See *Appendix B: Research Payments Detail* in [OpenPaymentsDataDictionary.pdf](http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf).
 f <- filenames$Name[grep("RSRCH", filenames$Name)]
 f <- paste0(tempdir(), "\\", f)
-require(data.table)
-colNames <- names(fread(f, nrows=0))
-classes <- list(character=1:length(colNames))
-D <- fread(f,
-           colClasses=classes,
-           na.strings="",
-           stringsAsFactors=FALSE)
-unlink(f)
-# Recode dates and numeric columns.
-colNames[grep("Date", colNames)]
-D <- D[,
-       `:=` (Program_Year = as.integer(Program_Year),
-             Payment_Publication_Date = as.Date(Payment_Publication_Date, format="%m/%d/%Y"),
-             Date_of_Payment = as.Date(Date_of_Payment, format="%m/%d/%Y"),
-             Total_Amount_of_Payment_USDollars = as.numeric(Total_Amount_of_Payment_USDollars))]
-DRsrch <- D
+DRsrch <- readFile(f)
+
+
+# Ownership and Investment Interest
+# **Ownership and Investment Interest Information is defined as information about the value of ownership or investment interest in an applicable manufacturer or applicable group purchasing organization.**
+# Read the Physician Ownership Information file into a data table.
+# See *Appendix C: Physician Ownership Information* in [OpenPaymentsDataDictionary.pdf](http://www.cms.gov/OpenPayments/Downloads/OpenPaymentsDataDictionary.pdf).
+f <- filenames$Name[grep("OWNRSHP", filenames$Name)]
+f <- paste0(tempdir(), "\\", f)
+DOwnrshp <- readFile(f)
 
 
 # row bind the data tables
-D <- rbind(DGnrl, DRsrch, fill=TRUE)
+D <- rbind(DGnrl, DRsrch, DOwnrshp, fill=TRUE)
 
 
 # Create payment type factor
 D <- D[!is.na(General_Transaction_ID), payType := "General"]
 D <- D[!is.na(Research_Transaction_ID), payType := "Research"]
+D <- D[!is.na(Physician_Ownership_Transaction_ID), payType := "Ownership"]
 
 
 # Create a payer column
 D <- D[, payer := Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name]
 # D <- D[, payer := toupper(Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_Name)]
+
+
 # Create a recipient column
 D <- D[grep("Hospital", Covered_Recipient_Type),
        recipient := Teaching_Hospital_Name]
 D <- D[grepl("Physician", Covered_Recipient_Type),
        recipient := paste(Physician_Last_Name, Physician_First_Name, sep=", ")]
+D <- D[payType == "Ownership",
+       recipient := paste(Physician_Last_Name, Physician_First_Name, sep=", ")]
+
+
+# Create an amount column
+D <- D[payType %in% c("General", "Research"),
+       amount := Total_Amount_of_Payment_USDollars]
+D <- D[payType == "Ownership",
+       amount := Dollar_Amount_Invested]
 
 
 # Create payment amount category factor
-D <- D[, amtCategory := cut(Total_Amount_of_Payment_USDollars, c(0, 1E0, 1E1, 1E2, 1E3, 1E4, 1E5, 1E6, 1E7), include.lowest=TRUE)]
+D <- D[, amtCategory := cut(amount, c(0, 1E0, 1E1, 1E2, 1E3, 1E4, 1E5, 1E6, 1E7), include.lowest=TRUE)]
+
+
+# Subset columns
+D <- D[, list(payType, payer, recipient, Recipient_State, amount, amtCategory)]
+
+
+# Save the data table object to file
+save(D, file=file.path(getwd(), "OpenPayments.RData"))
 
 
 # Write subset of columns to file
 # For use in OpenRefine
-write.csv(D[, list(payer, recipient, payType, amount = Total_Amount_of_Payment_USDollars)],
-          file=file.path(getwd(), "data.csv"))
+# write.csv(D[, list(payer, recipient, payType, amount)],
+#           file=file.path(getwd(), "data.csv"))
 
 
 # Get zip code shapefiles
